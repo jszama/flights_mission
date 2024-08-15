@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
-from models import Flight, FlightModel, FlightSearchCriteria, BookFlightInput,get_db
+from models import Flight, FlightModel, FlightSearchCriteria, BookFlightInput,Customers,Booking,get_db
 import logging
 
 # Create a logger for this module
@@ -78,6 +78,69 @@ def generate_flights(flight_input, num_flights, db: Session):
         logging.info(f"Successfully added flight: {new_flight.flight_number}")
         
     return flights
+
+def generate_id(db:Session,table_name):
+    results_count = db.query(table_name).count()
+    if results_count<10:
+        return ("000"+results_count)
+    elif results_count<100:
+        return ("00"+results_count)
+    elif results_count<1000:
+        return("0"+results_count)
+    else:
+        return(results_count)
+
+def handle_user_data_entry(criteria,db:Session):
+    #generate query object
+     query = db.query(Customers)
+     
+     #filtering the query to check if the user already exists
+     query = query.filter(criteria.first_name == Customers.first_name)
+     query = query.filter(criteria.last_name == Customers.last_name)
+     if criteria.email:
+      query = query.filter(criteria.email == Customers.email)
+     if criteria.phone_number:
+       query = query.filter(criteria.phone_number == Customers.phone_number)
+    
+     #finding out if the user already exists in the database
+     customer_exist = query.count()
+     #if the user exists, then no change is done
+     if customer_exist != 0:
+         return 
+     #else, we add the user to the database
+     else:
+         new_user = Customers(
+             customer_id = generate_id(db,Customers),
+             first_name = criteria.first_name , 
+             last_name = criteria.last_name , 
+             email = criteria.email , 
+             phone_number = criteria.phone_number
+         )
+         db.add(new_user)
+         db.commit()
+         db.refresh(new_user)
+         logging.info(f"Successfully added flight: {new_user.customer_id}")
+
+    
+def handle_booking_entry(criteria,db:Session):
+    #adding the data row to the booking table
+    new_booking_entry = Booking(
+        booking_id = generate_id(db,Booking),
+        customer_id = criteria.customer_id,
+        flight_number = criteria.flight_number,
+        booking_date = criteria.booking_date,
+        seat_type = criteria.seat_type ,
+        num_seats = criteria.num_seats,
+        total_cost = criteria.total_cost
+        
+    )
+    db.add(new_booking_entry)
+    db.commit()
+    db.refresh(new_booking_entry)
+    logging.info(f"Successfully added flight: {new_booking_entry.booking_id}")
+
+def calculate_total_cost():
+    return 
 
 def handle_flight_search(criteria, db: Session, page: Optional[int] = 1, page_size: Optional[int] = 10):
     """
@@ -180,7 +243,7 @@ def handle_flight_search(criteria, db: Session, page: Optional[int] = 1, page_si
     flights = query.offset(offset).limit(page_size).all()
 
     # Convert SQLAlchemy models to Pydantic models
-    flight_models = [FlightModel.from_orm(flight) for flight in flights]
+    flight_models = [FlightModel.model_validate(flight) for flight in flights]
 
     # Return the query results
     return {

@@ -51,7 +51,7 @@ class Booking(Base):
     flights = relationship("Flight",back_populates="booking")
 
     booking_id = Column(Integer,primary_key=True)
-    flight_id = Column(Integer,ForeignKey('flights.flight_id'))
+    flight_number = Column(Integer,ForeignKey('flights.flight_number'))
     customer_id = Column(Integer,ForeignKey('customers.customer_id'))
     booking_date = Column(DateTime,default=datetime.now().timestamp())
     seat_type = Column(String)
@@ -63,7 +63,7 @@ customer_flight_association = Table(
     'customer_flight_association',
     Base.metadata,
     Column('customer_id', Integer, ForeignKey('customers.customer_id')),
-    Column('flight_id', Integer, ForeignKey('flights.flight_id')),
+    Column('flight_number', Integer, ForeignKey('flights.flight_number')),
     Column('booking_id', Integer, ForeignKey('bookings.booking_id'))
 )
 
