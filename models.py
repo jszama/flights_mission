@@ -1,6 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date,ForeignKey,Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker,relationship
 from pydantic import BaseModel, Field
 from datetime import date, datetime, time
 from typing import Optional
@@ -29,7 +29,46 @@ class Flight(Base):
     business_seat_cost = Column(Integer)
     first_class_cost = Column(Integer)
 
+    booking = relationship("Booking",back_populates="flights")
+
+class Customers(Base):
+    __tablename__= "customers"
+
+    customer_id = Column(Integer,primary_key=True,index=True)
+    first_name = Column(String,index=True)
+    last_name = Column(String,index=True)
+    email = Column(String,unique=True,index=True)
+    phone_number = Column(String,unique=True)
+    date_of_birth = Column(DateTime)
+
+    bookings = relationship("Booking", back_populates="customer")
+
+
+class Booking(Base):
+    __tablename__ = "booking"
+
+    customers = relationship("Customers",back_populates="booking")
+    flights = relationship("Flight",back_populates="booking")
+
+    booking_id = Column(Integer,primary_key=True)
+    flight_id = Column(Integer,ForeignKey('flights.flight_id'))
+    customer_id = Column(Integer,ForeignKey('customers.customer_id'))
+    booking_date = Column(DateTime,default=datetime.now().timestamp())
+    seat_type = Column(String)
+    num_seats = Column(Integer)
+    total_cost = Column(Integer)
+
+
+customer_flight_association = Table(
+    'customer_flight_association',
+    Base.metadata,
+    Column('customer_id', Integer, ForeignKey('customers.customer_id')),
+    Column('flight_id', Integer, ForeignKey('flights.flight_id')),
+    Column('booking_id', Integer, ForeignKey('bookings.booking_id'))
+)
+
 # Pydantic Models for inputs & Body Validation
+
 class FlightModel(BaseModel):
     flight_id: int
     flight_number: str
@@ -74,7 +113,7 @@ class BookFlightInput(BaseModel):
     flight_id:int
     seat_type:str
     num_seats:Optional[int]=1
-    
+
 
 # Create the database
 engine = create_engine(DATABASE_URL)
