@@ -139,8 +139,17 @@ def handle_booking_entry(criteria,db:Session):
     db.refresh(new_booking_entry)
     logging.info(f"Successfully added flight: {new_booking_entry.booking_id}")
 
-def calculate_total_cost():
-    return 
+def calculate_total_cost(db:Session,criteria):
+    query = db.query(Flight)
+    query = query.filter(criteria.flight_number)
+    result = query.first()
+    num_seats = criteria.num_seats
+    if criteria.seat_type == "Economy":
+      return (result.economy_seat_cost) * num_seats
+    elif criteria.seat_type == "Business":
+        return (result.business_seat_cost)* num_seats
+    else:
+        return (result.first_class_cost)*num_seats
 
 def handle_flight_search(criteria, db: Session, page: Optional[int] = 1, page_size: Optional[int] = 10):
     """
