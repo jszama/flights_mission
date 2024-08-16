@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 import sys
 import os
-#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from models import Customers,CustomerInput
 from services.flight_manager import handle_user_data_entry
 
