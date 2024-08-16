@@ -123,7 +123,7 @@ def handle_booking_entry(criteria,db:Session):
     #adding the data row to the booking table
     new_booking_entry = Booking(
         customer_id = criteria.customer_id,
-        flight_id = criteria.id,
+        flight_id = criteria.flight_id,
         booking_date = criteria.booking_date,
         seat_type = criteria.seat_type ,
         num_seats = criteria.num_seats,
