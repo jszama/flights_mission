@@ -282,7 +282,7 @@ def handle_flight_book(first_name:str,
     """
     #creating a user entry in the Customers table
     customer_input = CustomerInput(first_name,last_name,email,phone_number,date_of_birth)
-    handle_user_data_entry(customer_input,db)
+    user = handle_user_data_entry(customer_input,db)
 
 
     # Retrieve the flight from the database
@@ -313,19 +313,16 @@ def handle_flight_book(first_name:str,
     customer = db.query(Customers).filter(Customers.email == email).first()
     #creating booking entry in the Booking table
     booking_entry = BookingInput(flight_id,customer.customer_id,booking_date,seat_type,num_seats,total_cost)
-    handle_booking_entry(booking_entry,db)
-    # Commit the booking to the database
-    db.commit()
-    booking_id = db.query(Booking).filter((Booking.flight_id == flight_id) & (Booking.customer_id==customer.customer_id)).first().booking_id
-    
-    associative_table_entry = CustomerFLightAssociation(flight_id,customer.customer_id,booking_id=booking_id)
-    update_associate_table(associative_table_entry)
+    booking = handle_booking_entry(booking_entry,db)
+   
+    booking = db.query(Booking).filter((Booking.flight_id == flight_id) & (Booking.customer_id==customer.customer_id)).first()
+    associative_table_entry = CustomerFLightAssociation(flight_id,customer.customer_id,booking_id=booking.booking_id)
+    flight-customer = update_associate_table(associative_table_entry,db)
 
-    if (update_associate_table) & handle_booking_entry & handle_user_data_entry:
+    if (user and booking and flight-customer):
       success_message = f"Successfully booked {num_seats} {seat_type} seat(s) on {flight.airline} flight on {flight.departure_date} from {flight.origin} to {flight.destination}. Total cost: ${total_cost}."
-
        # Return a success message
-      return {"message": success_message, "flight_info": flight, "User_info":customer}
+      return {"message": success_message, "flight_info": flight, "User_info":customer,"Booking_info":booking}
     
     else:
         return "flight booking was unsuccessful. Please try again."

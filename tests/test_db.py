@@ -157,3 +157,5 @@ def test_handle_booking_entry(mock_db_session):
     assert new_booking_entry.total_cost == criteria.total_cost
     assert new_booking_entry.booking_date == criteria.booking_date
     assert new_booking_entry.seat_type == criteria.seat_type
+
+
