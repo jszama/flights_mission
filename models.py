@@ -41,7 +41,7 @@ class Customers(Base):
     phone_number = Column(String,unique=True)
     date_of_birth = Column(DateTime)
 
-    bookings = relationship("Booking", back_populates="customer")
+    booking = relationship("Booking", back_populates="customers")
 
 
 class Booking(Base):
@@ -51,7 +51,7 @@ class Booking(Base):
     flights = relationship("Flight",back_populates="booking")
 
     booking_id = Column(Integer,primary_key=True)
-    flight_number = Column(Integer,ForeignKey('flights.flight_number'))
+    flight_id = Column(Integer,ForeignKey('flights.flight_number'))
     customer_id = Column(Integer,ForeignKey('customers.customer_id'))
     booking_date = Column(DateTime,default=datetime.now().timestamp())
     seat_type = Column(String)
@@ -63,11 +63,39 @@ customer_flight_association = Table(
     'customer_flight_association',
     Base.metadata,
     Column('customer_id', Integer, ForeignKey('customers.customer_id')),
-    Column('flight_number', Integer, ForeignKey('flights.flight_number')),
-    Column('booking_id', Integer, ForeignKey('bookings.booking_id'))
+    Column('flight_number', Integer, ForeignKey('flights.flight_id')),
+    Column('booking_id', Integer, ForeignKey('booking.booking_id'))
 )
 
 # Pydantic Models for inputs & Body Validation
+class CustomerInput(BaseModel):
+    customer_id:int
+    first_name : str
+    last_name : str
+    email : str
+    phone_number : str
+    date_of_birth : datetime
+
+    class Config:
+        from_attributes = True
+
+class BookingInput(BaseModel):
+    booking_id: int
+    flight_id: int
+    customer_id : int
+    booking_date : datetime
+    seat_type : str
+    num_seats : int
+    total_cost : int
+    class Config:
+        from_attributes = True
+
+class CustomerFLightAssociation(BaseModel):
+    flight_id:int
+    customer_id:int
+    booking_id:int
+    class Config:
+        from_attributes = True
 
 class FlightModel(BaseModel):
     flight_id: int
