@@ -79,27 +79,27 @@ def generate_flights(flight_input, num_flights, db: Session):
         
     return flights
  
-def handle_user_data_entry(criteria,db:Session):
+def handle_user_data_entry(criteria:CustomerInput,db:Session):
     #generate query object
      query = db.query(Customers)
-     
      #filtering the query to check if the user already exists
      query = query.filter(
-    (Customers.email == criteria.email) |
+    (Customers.email == criteria.email) &
     (Customers.phone_number == criteria.phone_number)
 )
      #finding out if the user already exists in the database
      customer_exist = query.count()
      #if the user exists, then no change is done
      if customer_exist != 0:
-         return 
+         return False
      #else, we add the user to the database
      else:
          new_user = Customers(
              first_name = criteria.first_name , 
              last_name = criteria.last_name , 
              email = criteria.email , 
-             phone_number = criteria.phone_number
+             phone_number = criteria.phone_number,
+             date_of_birth = criteria.date_of_birth
          )
          db.add(new_user)
          db.commit()
@@ -305,7 +305,7 @@ def handle_flight_book(criteria:BookFlightInput,db: Session = Depends(get_db)):
         phone_number=criteria.phone_number,
         date_of_birth=criteria.date_of_birth)
     
-    user = handle_user_data_entry(customer_input,db)
+    handle_user_data_entry(customer_input,db)
     customer = db.query(Customers).filter(Customers.email == criteria.email).first()
     
     
@@ -322,7 +322,7 @@ def handle_flight_book(criteria:BookFlightInput,db: Session = Depends(get_db)):
    
     flight = db.query(Flight).filter(Flight.flight_id == criteria.flight_id).first()
     
-    if (user and booking):
+    if (booking):
       success_message = f"Successfully booked {criteria.num_seats} {criteria.seat_type} seat(s) on {flight.airline} flight on {flight.departure_date} from {flight.origin} to {flight.destination}. Total cost: ${total_cost}."
        # Return a success message
       return {"message": success_message, "flight_info": flight, "User_info":customer}

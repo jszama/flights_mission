@@ -172,9 +172,6 @@ model = GenerativeModel(
 
 
 
-"""Used to process the model response. If the model response is a funnction call, 
-then it will be executed and then sent back to the model for another response. However,
-if the response is just a natural text response, then it will be returned without any change """
 
 def handle_response(response):
     st.write(response)
@@ -215,7 +212,6 @@ def handle_response(response):
     
 
 
-"""Displays the processed llm responses """  
 
 def llm_function(chat:ChatSession,query):
     response = chat.send_message(query)
@@ -239,7 +235,6 @@ def llm_function(chat:ChatSession,query):
 
 
 
-"""Creating a streamlit front end interface and starting the chat llm model"""
 
 st.title("Gemini Flights")
 

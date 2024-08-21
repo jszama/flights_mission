@@ -38,7 +38,7 @@ class Customers(Base):
     first_name = Column(String,index=True)
     last_name = Column(String,index=True)
     email = Column(String,unique=True,index=True)
-    phone_number = Column(String,unique=True)
+    phone_number = Column(Integer,unique=True)
     date_of_birth = Column(Date)
 
     booking = relationship("Booking", back_populates="customers")
@@ -114,7 +114,6 @@ class BookingInput(BaseModel):
     seat_type : str
     num_seats : int
     total_cost : int
-    date_of_birth:date
     class Config:
         from_attributes = True
 
