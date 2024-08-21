@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
-from models import Flight, FlightModel, FlightSearchCriteria, BookFlightInput,Customers,Booking,CustomerInput,BookingInput,customer_flight_association,CustomerFLightAssociation,get_db
+from models import Flight, FlightModel, FlightSearchCriteria, BookFlightInput,Customers,Booking,CustomerInput,BookingInput,UpdateBookingInput,RemoveBookingInput,SeatInput,get_db
 import logging
 
 # Create a logger for this module
@@ -78,8 +78,7 @@ def generate_flights(flight_input, num_flights, db: Session):
         logging.info(f"Successfully added flight: {new_flight.flight_number}")
         
     return flights
-
-
+ 
 def handle_user_data_entry(criteria,db:Session):
     #generate query object
      query = db.query(Customers)
@@ -108,16 +107,6 @@ def handle_user_data_entry(criteria,db:Session):
          logging.info(f"Successfully added new user: {new_user.customer_id}")
          return True
 
-def update_associate_table(criteria,db:Session):
-    new_entry = CustomerFLightAssociation(
-        flight_id=criteria.flight_id,
-        customer_id=criteria.customer_id,
-        booking_id=criteria.booking_id
-    )
-    db.add(new_entry)
-    db.commit()
-    db.refresh(new_entry)
-    return True
 
 def handle_booking_entry(criteria,db:Session):
     #adding the data row to the booking table
@@ -136,6 +125,28 @@ def handle_booking_entry(criteria,db:Session):
     logging.info(f"Successfully added flight: {new_booking_entry.booking_id}")
     return True
 
+def seat_reduction_flights(criteria,db:Session):
+    # Retrieve the flight from the database
+    flight = db.query(Flight).filter(Flight.flight_id == criteria.flight_id).first()
+    if not flight:
+        return "Flight not found."
+    # Initialize the cost variable
+    total_cost = 0
+    # Check seat availability based on seat type and number of requested seats
+    if criteria.seat_type == "economy" and (flight.open_seats_economy >= criteria.num_seats):
+        flight.open_seats_economy -= criteria.num_seats
+        total_cost = flight.economy_seat_cost * criteria.num_seats
+    elif criteria.seat_type == "business" and flight.open_seats_business >= criteria.num_seats:
+        flight.open_seats_business -= criteria.num_seats
+        total_cost = flight.business_seat_cost * criteria.num_seats
+    elif criteria.seat_type == "first_class" and flight.open_seats_first_class >= criteria.num_seats:
+        flight.open_seats_first_class -= criteria.num_seats
+        total_cost = flight.first_class_cost * criteria.num_seats
+    else:
+        # If not enough seats are available, return a failure message
+        return f"Not enough {criteria.seat_type} seats available."
+    db.commit()
+    return total_cost
 
 def handle_flight_search(criteria, db: Session, page: Optional[int] = 1, page_size: Optional[int] = 10):
     """
@@ -248,16 +259,7 @@ def handle_flight_search(criteria, db: Session, page: Optional[int] = 1, page_si
         "total_pages": total_pages
     }
 
-def handle_flight_book(first_name:str,
-                       last_name:str,
-                       email:str,
-                       phone_number:str,
-                       date_of_birth:datetime,
-                       flight_id: int, 
-                       seat_type: str,
-                       booking_date:datetime,
-                       num_seats: int = 1, 
-                       db: Session = Depends(get_db)):
+def handle_flight_book(criteria:BookFlightInput,db: Session = Depends(get_db)):
     """
     Books a specified number of seats on a flight.
 
@@ -280,53 +282,87 @@ def handle_flight_book(first_name:str,
     not available in the specified class, it returns an error message. If the flight is not found, 
     it returns a 'Flight not found.' message.
     """
-    #creating a user entry in the Customers table
-    customer_input = CustomerInput(first_name,last_name,email,phone_number,date_of_birth)
-    user = handle_user_data_entry(customer_input,db)
-
-
-    # Retrieve the flight from the database
-    flight = db.query(Flight).filter(Flight.flight_id == flight_id).first()
-
-    if not flight:
-        return "Flight not found."
-
-    # Initialize the cost variable
+    #reducing the number of seats in the Flights table as the user books seats in the mentioned seat type
+    flight_seat_input = SeatInput(
+        flight_id=criteria.flight_id,
+        num_seats=criteria.num_seats,
+        seat_type=criteria.seat_type
+    )
+    value =  seat_reduction_flights(flight_seat_input,db)
     total_cost = 0
-
-    # Check seat availability based on seat type and number of requested seats
-    if seat_type == "economy" and flight.open_seats_economy >= num_seats:
-        flight.open_seats_economy -= num_seats
-        total_cost = flight.economy_seat_cost * num_seats
-    elif seat_type == "business" and flight.open_seats_business >= num_seats:
-        flight.open_seats_business -= num_seats
-        total_cost = flight.business_seat_cost * num_seats
-    elif seat_type == "first_class" and flight.open_seats_first_class >= num_seats:
-        flight.open_seats_first_class -= num_seats
-        total_cost = flight.first_class_cost * num_seats
+    if type(value)!=int:
+        unsucessful__message = value
+        return unsucessful__message
     else:
-        # If not enough seats are available, return a failure message
-        return f"Not enough {seat_type} seats available."
+        total_cost = value
 
-    db.commit()
 
-    customer = db.query(Customers).filter(Customers.email == email).first()
+    #creating a user entry in the Customers table
+    customer_input = CustomerInput(
+        first_name=criteria.first_name,
+        last_name=criteria.last_name,
+        email=criteria.email,
+        phone_number=criteria.phone_number,
+        date_of_birth=criteria.date_of_birth)
+    
+    user = handle_user_data_entry(customer_input,db)
+    customer = db.query(Customers).filter(Customers.email == criteria.email).first()
+    
+    
     #creating booking entry in the Booking table
-    booking_entry = BookingInput(flight_id,customer.customer_id,booking_date,seat_type,num_seats,total_cost)
+    booking_entry = BookingInput(
+        flight_id=criteria.flight_id,
+        customer_id=customer.customer_id,
+        booking_date=criteria.booking_date,
+        seat_type=criteria.seat_type,
+        num_seats=criteria.num_seats,
+        total_cost=total_cost)
+    
     booking = handle_booking_entry(booking_entry,db)
    
-    booking = db.query(Booking).filter((Booking.flight_id == flight_id) & (Booking.customer_id==customer.customer_id)).first()
-    associative_table_entry = CustomerFLightAssociation(flight_id,customer.customer_id,booking_id=booking.booking_id)
-    flight-customer = update_associate_table(associative_table_entry,db)
-
-    if (user and booking and flight-customer):
-      success_message = f"Successfully booked {num_seats} {seat_type} seat(s) on {flight.airline} flight on {flight.departure_date} from {flight.origin} to {flight.destination}. Total cost: ${total_cost}."
+    flight = db.query(Flight).filter(Flight.flight_id == criteria.flight_id).first()
+    
+    if (user and booking):
+      success_message = f"Successfully booked {criteria.num_seats} {criteria.seat_type} seat(s) on {flight.airline} flight on {flight.departure_date} from {flight.origin} to {flight.destination}. Total cost: ${total_cost}."
        # Return a success message
-      return {"message": success_message, "flight_info": flight, "User_info":customer,"Booking_info":booking}
+      return {"message": success_message, "flight_info": flight, "User_info":customer}
     
     else:
         return "flight booking was unsuccessful. Please try again."
-        
+
+def remove_booking_entry(booking_id:int,db:Session):
+    booking = db.query(Booking).filter(Booking.booking_id == booking_id).first()
+    if not booking:
+     return "Booking not found."
+    
+    db.delete(booking)
+    db.commit()  
+
+    return "Booking has been successfully removed."
+
+def update_booking_entry(criteria:UpdateBookingInput,db:Session):
+    booking = db.query(Booking).filter(Booking.booking_id == criteria.booking_id).first()
+
+    if not booking:
+       return "Booking not found."
+ 
+     # Update the booking information
+    if criteria.new_seat_type:
+     booking.seat_type = criteria.new_seat_type
+    if criteria.new_num_seats:
+     booking.num_seats = criteria.new_num_seats
+    if criteria.new_total_cost:
+     booking.total_cost = criteria.new_total_cost
+    if criteria.new_flight_id:
+      booking.flight_id = criteria.new_flight_id  # if flight is changed
+
+    db.commit()
+
+    success_message =  f"Successfully updated booking!"
+       # Return a success message
+    return {"message": success_message,"Updated booking info":booking}
+   
+
 def search_flights(**params):
     """
     Sends a GET request to a FastAPI endpoint to search for flights based on various criteria.
@@ -371,10 +407,18 @@ def search_flights(**params):
 
 def book_flight(**params):
   criteria = BookFlightInput(**params)
-
-  url = f"http://127.0.0.1:8000/book_flight?{criteria.flight_id}&seat_type={criteria.seat_type}"
-  if criteria.num_seats:
-      url += f"&num_seats{criteria.num_seats}"
+  url = f"http://127.0.0.1:8000/book_flight/?first_name={criteria.first_name}&last_name={criteria.last_name}&email={criteria.email}&phone_number={criteria.phone_number}&date_of_birth={criteria.date_of_birth}&flight_id={criteria.flight_id}&seat_type={criteria.seat_type}&booking_date={criteria.booking_date}&num_seats={criteria.num_seats}"
   response = requests.get(url, headers={'accept':'application/json'})
-
   return response.json()
+
+def remove_flight_booking(**params):
+    criteria = RemoveBookingInput(**params)
+    url = f"http://127.0.0.1:8000/remove_booking_entry/?booking_id={criteria.booking_id}"
+    response = requests.get(url, headers={'accept': 'application/json'})
+    return response.json()
+
+def update_flight_booking(**params):
+    criteria = UpdateBookingInput(**params)
+    url = f"http://127.0.0.1:8000/update_booking/?booking_id={criteria.booking_id}"
+    if criteria.new_seat_type:
+        url+= f"&new_seat_type={criteria.new_seat_type}"

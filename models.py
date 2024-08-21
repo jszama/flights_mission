@@ -39,7 +39,7 @@ class Customers(Base):
     last_name = Column(String,index=True)
     email = Column(String,unique=True,index=True)
     phone_number = Column(String,unique=True)
-    date_of_birth = Column(DateTime)
+    date_of_birth = Column(Date)
 
     booking = relationship("Booking", back_populates="customers")
 
@@ -53,49 +53,32 @@ class Booking(Base):
     booking_id = Column(Integer,primary_key=True)
     flight_id = Column(Integer,ForeignKey('flights.flight_number'))
     customer_id = Column(Integer,ForeignKey('customers.customer_id'))
-    booking_date = Column(DateTime,default=datetime.now().timestamp())
+    booking_date = Column(Date,default=date.today())
     seat_type = Column(String)
     num_seats = Column(Integer)
     total_cost = Column(Integer)
 
 
-customer_flight_association = Table(
-    'customer_flight_association',
-    Base.metadata,
-    Column('customer_id', Integer, ForeignKey('customers.customer_id')),
-    Column('flight_number', Integer, ForeignKey('flights.flight_id')),
-    Column('booking_id', Integer, ForeignKey('booking.booking_id'))
-)
-
 # Pydantic Models for inputs & Body Validation
-class CustomerInput(BaseModel):
-    customer_id:int
-    first_name : str
-    last_name : str
-    email : str
-    phone_number : str
-    date_of_birth : datetime
 
-    class Config:
-        from_attributes = True
 
-class BookingInput(BaseModel):
-    booking_id: int
-    flight_id: int
-    customer_id : int
-    booking_date : datetime
-    seat_type : str
-    num_seats : int
-    total_cost : int
-    class Config:
-        from_attributes = True
+#table entry models
+class CustomerModel(BaseModel):
+     customer_id:int
+     first_name:str
+     last_name:str
+     email:str
+     phone_number:int
+     date_of_birth:date
 
-class CustomerFLightAssociation(BaseModel):
-    flight_id:int
-    customer_id:int
-    booking_id:int
-    class Config:
-        from_attributes = True
+class BookingModel(BaseModel):
+     booking_id:int
+     customer_id:int
+     flight_id:int
+     booking_date:date
+     seat_type:str
+     num_seats:int
+     total_cost:int
 
 class FlightModel(BaseModel):
     flight_id: int
@@ -119,11 +102,41 @@ class FlightModel(BaseModel):
     class Config:
         from_attributes = True
 
+
+####
+
+#Input models
+
+class BookingInput(BaseModel):
+    flight_id: int
+    customer_id : int
+    booking_date : date
+    seat_type : str
+    num_seats : int
+    total_cost : int
+    date_of_birth:date
+    class Config:
+        from_attributes = True
+
+class CustomerInput(BaseModel):
+    first_name : str
+    last_name : str
+    email : str
+    phone_number : int
+    date_of_birth : date
+
+
 class FlightInput(BaseModel):
     origin: str
     destination: str
     departure_date: date
 
+class SeatInput(BaseModel):
+     flight_id:int
+     num_seats:int
+     seat_type:str
+
+#Flight search input model
 class FlightSearchCriteria(BaseModel):
     origin: str
     destination: str
@@ -136,13 +149,32 @@ class FlightSearchCriteria(BaseModel):
     seat_type: Optional[str] = None  # 'economy', 'business', 'first_class'
     min_cost: Optional[int] = None
     max_cost: Optional[int] = None
-    
+
+#flight booking input model
 class BookFlightInput(BaseModel):
-    flight_id:int
-    seat_type:str
-    num_seats:Optional[int]=1
+                       first_name:str
+                       last_name:str
+                       email:str
+                       phone_number:int
+                       date_of_birth:date
+                       flight_id: int
+                       seat_type: str
+                       booking_date:date = date.today()
+                       num_seats: int = 1
 
+#Booking update input model
+class UpdateBookingInput(BaseModel):
+     booking_id:int
+     new_seat_type:Optional[str]
+     new_num_seats:Optional[int]
+     new_total_cost:Optional[int]
+     new_flight_id:Optional[int]
 
+#Removing a booking entry
+class RemoveBookingInput(BaseModel):
+     booking_id:int
+     
+####
 # Create the database
 engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(bind=engine)

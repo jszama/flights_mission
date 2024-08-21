@@ -82,6 +82,7 @@ def handle_response(response):
 # helper function to display and send streamlit messages
 def llm_function(chat: ChatSession, query):
     response = chat.send_message(query)
+    st.write(response)
     output = handle_response(response)
     
     with st.chat_message("model"):
