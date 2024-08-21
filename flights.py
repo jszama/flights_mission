@@ -8,7 +8,9 @@ from vertexai.preview.generative_models import ToolConfig
 project = "trans-array-427509-h2"
 vertexai.init(project = project)
 
-# Define Tool
+#Tool definitions
+
+#tool for searching flights
 get_search_flights = generative_models.FunctionDeclaration(
     name="get_search_flights",
     description="Tool for searching a flight with origin, destination, and departure date",
@@ -36,7 +38,7 @@ get_search_flights = generative_models.FunctionDeclaration(
         ]
     },
 )
-
+#tool for booking flights
 handle_booking_flights = generative_models.FunctionDeclaration(
     name = "book_flights",
     description="This function books seats on a flight identified by its flight_id. It handles seat booking for different classes (economy, business, first class) and calculates the total cost based on the number of seats and the seat type. It updates the flight's seat availability and commits the changes to the database.",
@@ -87,6 +89,7 @@ handle_booking_flights = generative_models.FunctionDeclaration(
             "first_name",
             "last_name",
             "email",
+            "date_of_birth",
             "phone_number",
             "flight_id",
             "seat_type",
@@ -97,6 +100,7 @@ handle_booking_flights = generative_models.FunctionDeclaration(
     )
 
 
+#tool for removing previous booking entry
 handle_removing_booking = generative_models.FunctionDeclaration(
     name = "remove_flight_booking",
     description="This function is removes previous booking appointments made by the user in the Booking table. The booking_id is used to identify the entry in the Booking table that the user wishes to remove",
@@ -112,6 +116,7 @@ handle_removing_booking = generative_models.FunctionDeclaration(
     }
 )
 
+#tool foor update previous or recent booking entry
 handle_update_booking = generative_models.FunctionDeclaration(
     name = "update_flight_booking",
     description="This function updates an existing entry in the Booking table of the database with new information that the user provides and new information(new number of seats,new seat type, new flight) calculated by the system(new cost)",
@@ -143,10 +148,12 @@ handle_update_booking = generative_models.FunctionDeclaration(
     }
 )
 
+
 tools = generative_models.Tool(
     function_declarations=[handle_booking_flights,get_search_flights,handle_removing_booking,handle_update_booking]
 )
 
+#tool config used for forced function calling. However, its only used for testing purposes
 tool_config = ToolConfig(
     function_calling_config=ToolConfig.FunctionCallingConfig(
         mode=ToolConfig.FunctionCallingConfig.Mode.ANY,  # ANY mode forces the model to predict a function call from a subset of function names.
@@ -154,12 +161,20 @@ tool_config = ToolConfig(
     )
 )
 
+#configuring model with the configs and defined tools
 config = generative_models.GenerationConfig(temperature=0.2)
 model = GenerativeModel(
     "gemini-1.5-pro-001",
     tools = [tools],
     generation_config=config
 )
+
+
+
+
+"""Used to process the model response. If the model response is a funnction call, 
+then it will be executed and then sent back to the model for another response. However,
+if the response is just a natural text response, then it will be returned without any change """
 
 def handle_response(response):
     st.write(response)
@@ -198,6 +213,10 @@ def handle_response(response):
     else:
         return response.candidates[0].content.parts[0].text
     
+
+
+"""Displays the processed llm responses """  
+
 def llm_function(chat:ChatSession,query):
     response = chat.send_message(query)
     output = handle_response(response)
@@ -217,6 +236,10 @@ def llm_function(chat:ChatSession,query):
             "content": output
         }
     )
+
+
+
+"""Creating a streamlit front end interface and starting the chat llm model"""
 
 st.title("Gemini Flights")
 
