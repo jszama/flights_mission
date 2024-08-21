@@ -107,7 +107,6 @@ def handle_user_data_entry(criteria:CustomerInput,db:Session):
          logging.info(f"Successfully added new user: {new_user.customer_id}")
          return True
 
-
 def handle_booking_entry(criteria,db:Session):
     #adding the data row to the booking table
     new_booking_entry = Booking(
@@ -360,8 +359,7 @@ def update_booking_entry(criteria:UpdateBookingInput,db:Session):
 
     success_message =  f"Successfully updated booking!"
        # Return a success message
-    return {"message": success_message,"Updated booking info":booking}
-   
+    return {"message": success_message,"Updated booking info":booking} 
 
 def search_flights(**params):
     """

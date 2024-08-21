@@ -172,7 +172,7 @@ find_flight_id_funct = generative_models.FunctionDeclaration(
 
 find_customer_id_func = generative_models.FunctionDeclaration(
     name = "find_customer_id" , 
-    description="This is a helper function used for the fuctions: get_search_flights,book_flights,remove_flight_booking,update_flight_booking. It is used when the functions mentioned require customer_id as an input parameter",
+    description="This is a helper function used for the fuctions: book_flights,remove_flight_booking,update_flight_booking. It is used when the functions mentioned require customer_id as an input parameter",
     parameters={
         "type":"object",
         "properties":{
@@ -185,10 +185,31 @@ find_customer_id_func = generative_models.FunctionDeclaration(
     }
 )
 
+find_booking_id_func = generative_models.FunctionDeclaration(
+     name = "find_booking_id" , 
+    description="This is a helper function used for the fuctions: remove_flight_booking,update_flight_booking. It is used when the functions mentioned require flight_id as an input parameter.",
+    parameters={
+        "type":"object",
+        "properties":{
+            "flight_id":{
+                "type":"integer",
+                "description":"This could be retrieved from the helper function 'find_flight_id' ."
+            },
+            "customer_id":{
+                "type":"string",
+                "format":"date",
+                "description":"This could be retrieved from the helper function 'find_customer_id' ."
+            }
+        },
+        "required":["flight_id","customer_id"]
+    }
+)
+
+
 
 
 tools = generative_models.Tool(
-    function_declarations=[handle_booking_flights,get_search_flights,handle_removing_booking,handle_update_booking]
+    function_declarations=[handle_booking_flights,get_search_flights,handle_removing_booking,handle_update_booking,find_booking_id_func,find_customer_id_func,find_flight_id_funct]
 )
 
 #tool config used for forced function calling. However, its only used for testing purposes
@@ -213,6 +234,7 @@ model = GenerativeModel(
 
 def handle_response(response):
     st.write(response)
+    
     if response.candidates[0].content.parts[0].function_call.args:
         function_name = response.candidates[0].content.parts[0].function_call.name
         function_args = response.candidates[0].content.parts[0].function_call.args
@@ -224,14 +246,29 @@ def handle_response(response):
 
         results = ""
 
-        if function_name == "book_flights":
-            results = book_flight(**function_args)
-        elif function_name =="get_search_flights":
-            results = search_flights(**function_params)
-        elif function_name == "remove_flight_booking":
-            results = remove_flight_booking(**function_params)
-        elif function_name == "update_flight_booking":
-            results = update_flight_booking(**function_params)
+        function_map = {
+        "book_flights": book_flight,
+        "get_search_flights": search_flights,
+        "remove_flight_booking": remove_flight_booking,
+        "update_flight_booking": update_flight_booking,
+        "find_flight_id": find_flight_id,
+        "find_customer_id": find_customer_id,
+        "find_booking_id": find_booking_id,
+    }
+
+        function_to_call = function_map.get(function_name)
+ 
+        if function_to_call:
+          try:
+            results = function_to_call(**function_params) 
+
+            # ... (rest of your result handling code)
+
+          except Exception as e:
+            return f"Error executing function '{function_name}': {str(e)}"
+        else:
+           return f"Error: Unknown function '{function_name}'" 
+  
         
         if results != "":
             intermediate_response = chat.send_message(
