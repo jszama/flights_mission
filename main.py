@@ -49,5 +49,5 @@ def remove_booking_endpoint(booking_id:int, db: Session = Depends(models.get_db)
     return remove_booking_entry(booking_id=booking_id , db=db)
 
 @app.post("/update_booking/")
-def update_booking_endpoint(booking_id,new_seat_type,new_num_seats,new_total_cost,new_flight_id,db:Session=Depends(models.get_db)):
-    return update_booking_entry(booking_id,new_seat_type,new_num_seats,new_total_cost,new_flight_id,db)
+def update_booking_endpoint(criteria:models.UpdateBookingInput,db:Session=Depends(models.get_db)):
+    return update_booking_entry(criteria,db)

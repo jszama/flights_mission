@@ -106,7 +106,7 @@ class FlightModel(BaseModel):
 ####
 
 #Input models
-
+    
 class BookingInput(BaseModel):
     flight_id: int
     customer_id : int

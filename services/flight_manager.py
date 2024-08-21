@@ -422,3 +422,20 @@ def update_flight_booking(**params):
     url = f"http://127.0.0.1:8000/update_booking/?booking_id={criteria.booking_id}"
     if criteria.new_seat_type:
         url+= f"&new_seat_type={criteria.new_seat_type}"
+    if criteria.new_num_seats:
+        url+=f"&new_num_seats={criteria.new_num_seats}"
+    if criteria.new_total_cost:
+        url+=f"&new_total_cost={criteria.new_total_cost}"
+    if criteria.new_flight_id:
+        url+=f"&new_flight_id={criteria.new_flight_id}"
+    response = requests.get(url, headers={'accept': 'application/json'})
+    return response.json()
+
+def find_flight_id(flight_number:int,departure_date:date,db:Session=Depends(get_db)):
+     return db.query(Flight).filter(Flight.flight_number == flight_number).filter(Flight.departure_date==departure_date).first().flight_id
+
+def find_customer_id(email:str,db:Session=Depends(get_db)):
+    return db.query(Customers).filter(Customers.email==email).filter(Customers.phone_number).first().customer_id
+
+def find_booking_id(flight_id:int,customer_id:int,db:Session=Depends(get_db)):
+     return db.query(Booking).filter(Booking.flight_id == flight_id).filter(Booking.customer_id==customer_id).first().booking_id

@@ -2,8 +2,10 @@ import vertexai
 import streamlit as st
 from vertexai.preview import generative_models
 from vertexai.preview.generative_models import GenerativeModel, Tool, Part, Content, ChatSession
-from services.flight_manager import search_flights,book_flight,update_flight_booking,remove_flight_booking
+from services.flight_manager import search_flights,book_flight,update_flight_booking,remove_flight_booking,find_booking_id,find_customer_id,find_flight_id
+
 from vertexai.preview.generative_models import ToolConfig
+
 
 project = "trans-array-427509-h2"
 vertexai.init(project = project)
@@ -148,6 +150,42 @@ handle_update_booking = generative_models.FunctionDeclaration(
     }
 )
 
+find_flight_id_funct = generative_models.FunctionDeclaration(
+    name = "find_flight_id" , 
+    description="This is a helper function used for the fuctions: get_search_flights,book_flights,remove_flight_booking,update_flight_booking. It is used when the functions mentioned require flight_id as an input parameter",
+    parameters={
+        "type":"object",
+        "properties":{
+            "flight_number":{
+                "type":"integer",
+                "description":"This is retrieved from the previous information when the user mentions the flight number in specific mentioned when searching or booking flights."
+            },
+            "departure_date":{
+                "type":"string",
+                "format":"date",
+                "description":"This is retrieved from the previous information when the user mentions the departure date of the flight during flight search or flight booking."
+            }
+        },
+        "required":["flight_number","departure_date"]
+    }
+)
+
+find_customer_id_func = generative_models.FunctionDeclaration(
+    name = "find_customer_id" , 
+    description="This is a helper function used for the fuctions: get_search_flights,book_flights,remove_flight_booking,update_flight_booking. It is used when the functions mentioned require customer_id as an input parameter",
+    parameters={
+        "type":"object",
+        "properties":{
+            "email":{
+                "type":"string",
+                "description":"This is retrieved from the previous information when the user mentions their email during booking flights."
+            }
+        },
+        "required":["email"]
+    }
+)
+
+
 
 tools = generative_models.Tool(
     function_declarations=[handle_booking_flights,get_search_flights,handle_removing_booking,handle_update_booking]
@@ -203,7 +241,7 @@ def handle_response(response):
                 )
             )
             st.write(intermediate_response)
-            return intermediate_response.candidates[0].content.parts[0].text
+            return intermediate_response.candidates[0].content.parts.text
         
         else:
             return "Search Failed"
