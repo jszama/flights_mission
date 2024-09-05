@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import logging
 
-from services.flight_manager import generate_flights, handle_flight_search, handle_flight_book,remove_booking_entry,update_booking_entry
+from services.flight_manager import generate_flights, handle_flight_search, handle_flight_book,remove_booking_entry,update_booking_entry,find_flight_id
 import models
 
 # Configure logging
@@ -51,3 +51,7 @@ def remove_booking_endpoint(booking_id:int, db: Session = Depends(models.get_db)
 @app.post("/update_booking/")
 def update_booking_endpoint(criteria:models.UpdateBookingInput,db:Session=Depends(models.get_db)):
     return update_booking_entry(criteria,db)
+
+# @app.get("/find_flight_id")
+# def find_flight_id_endpoint(criteria:models.findFlightID,db:Session=Depends(models.get_db)):
+#     return find_flight_id(criteria,db)

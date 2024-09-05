@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
-from models import Flight, FlightModel, FlightSearchCriteria, BookFlightInput,Customers,Booking,CustomerInput,BookingInput,UpdateBookingInput,RemoveBookingInput,SeatInput,get_db
+from models import Flight, FlightModel, FlightSearchCriteria, BookFlightInput,Customers,Booking,CustomerInput,BookingInput,UpdateBookingInput,RemoveBookingInput,SeatInput,get_db,SessionLocal
 import logging
 
 # Create a logger for this module
@@ -332,18 +332,18 @@ def handle_flight_book(criteria:BookFlightInput,db: Session = Depends(get_db)):
 def remove_booking_entry(booking_id:int,db:Session):
     booking = db.query(Booking).filter(Booking.booking_id == booking_id).first()
     if not booking:
-     return "Booking not found."
+     return {"message":"Booking not found."}
     
     db.delete(booking)
     db.commit()  
 
-    return "Booking has been successfully removed."
+    return {"message":"Booking has been successfully removed."}
 
 def update_booking_entry(criteria:UpdateBookingInput,db:Session):
     booking = db.query(Booking).filter(Booking.booking_id == criteria.booking_id).first()
 
     if not booking:
-       return "Booking not found."
+       return {"message":"Booking not found."}
  
      # Update the booking information
     if criteria.new_seat_type:
@@ -404,6 +404,14 @@ def search_flights(**params):
     return response.json()
 
 def book_flight(**params):
+  """
+    Books a specified number of seats on a flight.
+
+    This function books seats on a flight identified by its flight_id. It handles seat 
+    booking for different classes (economy, business, first class) and calculates the total cost based 
+    on the number of seats and the seat type. It updates the flight's seat availability and commits the 
+    changes to the database.
+    """
   criteria = BookFlightInput(**params)
   url = f"http://127.0.0.1:8000/book_flight/?first_name={criteria.first_name}&last_name={criteria.last_name}&email={criteria.email}&phone_number={criteria.phone_number}&date_of_birth={criteria.date_of_birth}&flight_id={criteria.flight_id}&seat_type={criteria.seat_type}&booking_date={criteria.booking_date}&num_seats={criteria.num_seats}"
   response = requests.get(url, headers={'accept':'application/json'})
@@ -429,11 +437,36 @@ def update_flight_booking(**params):
     response = requests.get(url, headers={'accept': 'application/json'})
     return response.json()
 
-def find_flight_id(flight_number:int,departure_date:date,db:Session=Depends(get_db)):
-     return db.query(Flight).filter(Flight.flight_number == flight_number).filter(Flight.departure_date==departure_date).first().flight_id
 
-def find_customer_id(email:str,db:Session=Depends(get_db)):
-    return db.query(Customers).filter(Customers.email==email).filter(Customers.phone_number).first().customer_id
+def find_flight_id(flight_number:int,departure_date:date):
+    db = SessionLocal()
+    try:
+        flight = db.query(Flight).filter(
+            Flight.flight_number == flight_number,
+            Flight.departure_date == departure_date
+        ).first()
+        
+        # If flight is found, return the flight_id
+        if flight:
+            return {"flight_id":flight.flight_id}
+        else:
+            return {"message":"flight not found"}
+    finally:
+        # Always close the session after use
+        db.close()
+        
+def find_customer_id(email:str):
+    db = SessionLocal()
+    try:
+      customer_id= db.query(Customers).filter(Customers.email==email).filter(Customers.phone_number).first().customer_id
+      if customer_id:
+       return {"customer_id":customer_id}
+      else:
+            return {"message":"customer is not found"}
+    finally:
+        # Always close the session after use
+        db.close()
+
 
 def find_booking_id(flight_id:int,customer_id:int,db:Session=Depends(get_db)):
      return db.query(Booking).filter(Booking.flight_id == flight_id).filter(Booking.customer_id==customer_id).first().booking_id

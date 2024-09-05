@@ -173,6 +173,9 @@ class UpdateBookingInput(BaseModel):
 class RemoveBookingInput(BaseModel):
      booking_id:int
      
+class findFlightID(BaseModel):
+     flight_number:int
+     departure_date:date
 ####
 # Create the database
 engine = create_engine(DATABASE_URL)

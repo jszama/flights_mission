@@ -1,4 +1,5 @@
 auth_key.json
+.env
 env/
 __pycache__/
 startup.py
