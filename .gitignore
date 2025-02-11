@@ -7,3 +7,7 @@ example.py
 streamlit_demo.py
 example2.ipynb
 .venv/
+*.ipynb
+sample.py
+.DS_store
+example_prompt.txt
