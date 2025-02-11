@@ -14,10 +14,7 @@ from functions.flight import (
 )
 
 class Agent:
-    def __init__(self):
-        self.chat = None
-        self.messages = []
-
+    def __init__(self):        
         project = "trans-array-427509-h2"
         vertexai.init(project=project)
 
@@ -40,7 +37,6 @@ class Agent:
             tools=[self.tools],
             generation_config=config
         )
-
 
     def handle_func_call(self, func_name:str,func_args:dict):
                 function_params = {}
