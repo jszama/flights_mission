@@ -1,7 +1,0 @@
-search flights from MAN to LHR on the 21st of August 2024
-
-book flight LG978
-
-First Name:Sanuthi, Last Name: De Silva, Email:sanuthi@gmail.com, Date of Birth (YYYY-MM-DD):2008-01-01, Phone Number:222, Number of Seats:1, Seat Type (Economy, Business, First Class):economy.
-
-flight number:EU788,email:methasa@gmail.com, the flight:LG978, the date:21-08-2024, the seat type:business, or the number of seats:1.
