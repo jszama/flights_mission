@@ -4,38 +4,19 @@ from datetime import datetime, timedelta, time, date
 from dateutil.parser import parse
 from typing import Optional
 from fastapi import Depends, HTTPException
-from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
-from models import Flight, FlightModel, FlightSearchCriteria, BookFlightInput,Customers,Booking,CustomerInput,BookingInput,UpdateBookingInput,RemoveBookingInput,SeatInput,get_db,SessionLocal
+
+from database.models.DatabaseModels import Flight, Customers, Booking
+from database.models.InputModels import CustomerInput, BookingInput, UpdateBookingInput, RemoveBookingInput, SeatInput, FlightSearchCriteria, BookFlightInput
+from database.models.TableEntryModels import FlightModel
+from database.database import get_db, SessionLocal
+
+from services.utils.helpers import generate_flight_number, choose_airline, calculate_times
+
 import logging
 
 # Create a logger for this module
 logger = logging.getLogger(__name__)
-
-def generate_flight_number():
-    # Example: AA342
-    return f"{random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}{random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}{random.randint(100, 999)}"
-
-def choose_airline():
-    # Example airlines
-    airlines = ['Phantom', 'DreamSky Airlines', 'VirtualJet', 'Enchanted Air', 'AeroFiction']
-    return random.choice(airlines)
-
-def calculate_times(origin, destination, flight_date):
-    # Randomly generate departure time between 0 and 23 hours
-    departure_hour = random.randint(0, 23)
-    departure_minute = random.randint(0, 59)
-    # Use flight_date instead of datetime.now()
-    departure_time = datetime.combine(flight_date, datetime.min.time()).replace(hour=departure_hour, minute=departure_minute)
-
-    # Random duration for the flight between 30 mins to 10 hours
-    duration = timedelta(minutes=random.randint(30, 600))
-    arrival_time = departure_time + duration
-
-    # Extracting the arrival date
-    arrival_date = arrival_time.date()
-
-    return departure_time, arrival_time, arrival_date
 
 def generate_flights(flight_input, num_flights, db: Session):
     flights = []
@@ -79,7 +60,7 @@ def generate_flights(flight_input, num_flights, db: Session):
         
     return flights
  
-def handle_user_data_entry(criteria:CustomerInput,db:Session):
+def handle_user_data_entry(criteria:CustomerInput, db:Session):
     #generate query object
      query = db.query(Customers)
      #filtering the query to check if the user already exists
