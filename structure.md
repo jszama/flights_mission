@@ -1,40 +1,41 @@
-my-nextjs-app/
+frontend/
 ├── .next/                  # Next.js build output (automatically generated)
 ├── node_modules/           # Node.js dependencies (automatically generated)
-├── public/                 # Static assets (e.g., images, fonts, favicon)
+├── public/                 # Static assets
 │   ├── images/             # Images used across the app
 │   ├── fonts/              # Custom fonts
 │   └── favicon.ico         # Favicon ( website icon )
 ├── src/
-│   ├── app/                # App Router (Next.js 13+)
-│   │   ├── (auth)/         # Grouped route for authentication-related pages
-│   │   │   └── login/      # Login page
-│   │   │       ├── components/  # Subcomponents for the login page ( components within the login page like the form )
-│   │   │       │   └── LoginForm.tsx  # LoginForm component (colocated)
-│   │   │       ├── actions/     # Server actions for login
-│   │   │       │   └── login.ts # Server action for login logic
-│   │   │       └── page.tsx     # Login page
+│   ├── middleware.ts       # Very useful way to check if user is authorised for certain pages ( not registered can not access dashboard or profile yk)
+│   ├── app/                # App Router (Next.js feature so we don't need to define a Router, makes life a lot easier)
+│   │   ├── (auth)/         # Grouped route for authentication-related pages ( just for readability, parentheses ignore it from the url)
+│   │   │   └── login/      # Login page (www.website.com/login, (auth) is ignored)
+│   │   │       ├── components/  # Subcomponents for the login page ( like the actual form )
+│   │   │       │   └── LoginForm.tsx  # LoginForm component ( having this here makes the page code look nicer )
+│   │   │       ├── actions/     # Server actions for login ( nextjs allows us to make a backend for each page so it looks nicer )
+│   │   │       │   └── login.ts # login form handling
+│   │   │       └── page.tsx     # Actual login page code
 │   │   ├── (main)/         # Grouped route for main app pages
 │   │   │   └── dashboard/  # Example of a protected page
 │   │   │       └── page.tsx
-│   │   ├── api/            # API routes (backend) but I dont't think we will need
+│   │   ├── api/            # API routes (backend) but I dont't think we will need it
 │   │   │   ├── auth/       
 │   │   │   │   └── route.ts 
 │   │   │   └── ...         
-│   │   ├── layout.tsx      # Root layout for the app
-│   │   └── page.tsx        # Home page
-│   ├── components/         # Shared components (if any)
-│   ├── lib/                # Utility functions and libraries
-│   ├── styles/             # Global and modular styles
+│   │   ├── layout.tsx      # Root layout for the app ( layout applied to every page )
+│   │   └── page.tsx        # Home page (www.website.com)
+│   ├── components/         # Shared components (for example a header)
+│   ├── styles/             # Global and modular styles ( styling stuffs )
 │   │   ├── globals.css     # Global CSS
 │   │   ├── theme.css       # Theming styles
-│   │   └── ...             # Other styles
-│   ├── types/              # TypeScript types/interfaces
-│   └── utils/              # Utility functions
+│   │   └── ...             
+│   ├── types/              # TypeScript types/interfaces ( think of it as schemas pretty much )
+│   └── utils/              # Utility functions and libraries (if we have functions that are used in more than one page put them here)
 ├── .env.local              # Environment variables (local)
-├── .eslintrc.js            # ESLint configuration
 ├── .gitignore              # Git ignore file
-├── next.config.js          # Next.js configuration
+├── README.md               # Project documentation
+### Don't have to touch the rest unless making console scripts
+├── .eslintrc.js            # ESLint configuration ( code analysis )
+├── next.config.js          # Next.js configuration 
 ├── package.json            # Project dependencies and scripts
-├── tsconfig.json           # TypeScript configuration
-└── README.md               # Project documentation
+└── tsconfig.json           # TypeScript configuration
