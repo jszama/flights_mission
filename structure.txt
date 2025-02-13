@@ -16,7 +16,7 @@ frontend/
 │   │   │       │   └── login.ts # login form handling
 │   │   │       └── page.tsx     # Actual login page code
 │   │   ├── (main)/         # Grouped route for main app pages
-│   │   │   └── dashboard/  # dahboard protected page, only logged in users ( middleware handles this )
+│   │   │   └── dashboard/  # dashboard protected page, only logged in users ( middleware handles this )
 │   │   │       └── page.tsx
 │   │   ├── api/            # API routes ( backend but I dont't think we will need it because of **actions** mentioned earlier )
 │   │   │   ├── auth/       
