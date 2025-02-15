@@ -3,16 +3,22 @@
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation';
 import HamburgerContent from './HamburgerContent';
 
 export default function Header() {
-    const [menuOpen, setMenuOpen] = React.useState(false);
+  const pathname = usePathname();
+  const noHeaderRoutes = ['/login', '/register'];
+  const shouldShowHeader = !noHeaderRoutes.includes(pathname);
 
-    const expandMenu = () => {
-        setMenuOpen(!menuOpen);
-    };
+  const [menuOpen, setMenuOpen] = React.useState(false);
+
+  const expandMenu = () => {
+      setMenuOpen(!menuOpen);
+  };
 
   return (
+    shouldShowHeader && (
     <div className="header">
       <h1 className='header-title'><Link href={'/'}>Plane Jane</Link></h1>
       <nav className='header-nav'>
@@ -33,5 +39,6 @@ export default function Header() {
         {menuOpen && <HamburgerContent />}
       </section>    
     </div>
+    )
   )
 }
