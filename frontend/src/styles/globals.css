@@ -3,8 +3,6 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
   --cta-colour: #007BFF;
   --default-text-colour: #333;
   --placeholder-text-colour: #777;
@@ -13,13 +11,6 @@
   --font-roboto: 'Roboto', sans-serif;
   --font-lora: 'Lora', serif;
   --font-inter: 'Inter', sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 /* Header */
@@ -770,13 +761,15 @@
 
 /* Login */
 .login-page {
-  @apply flex flex-col h-[836px] bg-[var(--default-white)] relative;
+  @apply flex flex-col h-screen bg-[var(--default-white)] relative overflow-hidden;
 }
 
 .login-header {
-  @apply flex flex-col h-[375px] relative shadow-md p-8;
+  @apply flex flex-col h-[600px] relative shadow-md p-8;
   background-image: url('/auth-background.png'), linear-gradient(to bottom, #0066FF, #007BFF);
-  background-size: contain;
+  background-size: fill;
+  background-position: top;
+  background-repeat: no-repeat;
   background-blend-mode: overlay;
 }
 
@@ -800,31 +793,25 @@
 }
 
 .login-content {
-  @apply flex flex-col gap-y-4 py-12 w-full rounded-t-[25px] bg-[#f3f3f3] absolute bottom-0 h-[568px] items-center;
+  @apply flex flex-col gap-y-4 py-12 w-full rounded-t-[25px] bg-[#f3f3f3] absolute bottom-0 h-[70%] items-center;
 }
 
-.login-form {
-  @apply flex flex-col gap-y-2 justify-center;
+.login-content form {
+  @apply flex flex-col justify-center w-[60%];
 }
 
-.login-form label {
+.login-form-label {
   @apply flex flex-col gap-y-1 font-bold text-[16px] text-[#777]
 }
 
-.login-form input {
-  @apply w-[320px] h-[40px] p-2 rounded-[5px] border-[1px] border-[#777] text-[16px] text-[var(--default-text-colour)] placeholder-[var(--placeholder-text-colour)] font-medium;
+.login-form-input {
+  @apply w-[100%] h-[40px] p-2 rounded-[5px] border-[1px] border-[#777] text-[16px] text-[var(--default-text-colour)] placeholder-[var(--placeholder-text-colour)] font-medium;
   font-family: var(--font-inter);
 }
 
 .login-form .error-message {
   @apply text-white text-[13px] font-bold bg-[#DF0000] border-[#8B0000] border-[1px] rounded-[5px] p-2 my-1 flex flex-row gap-x-[6px];
   font-family: var(--font-roboto);
-}
-
-.login-form button {
-  @apply bg-[#007BFF] text-[var(--default-white)] rounded-[5px] cursor-pointer transition-all w-[320px] h-[48px] text-[16px];
-  font-family: var(--font-inter);
-  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.15));
 }
 
 .login-form hr {
@@ -838,4 +825,94 @@
 
 .password-reset a {
   @apply font-bold cursor-pointer text-[var(--default-text-colour)];
+}
+
+.error-box {
+  @apply p-3 bg-[#DF0000]/20 rounded-[5px] text-[var(--default-text-colour)] border-2 border-black/20;
+  font-family: var(--font-inter);
+}
+
+.error-box ul {
+  @apply list-disc list-inside;
+}
+
+.error-box li {
+  @apply text-[14px];
+}
+
+.error-box hr {
+  @apply border-[.5px] h-[1px];
+}
+
+.horizontal-break {
+  @apply flex flex-row items-center gap-x-4 w-[70%];
+}
+
+.horizontal-break hr {
+  @apply border-[.5px] border-[#777] w-[100%] h-[1px];
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
