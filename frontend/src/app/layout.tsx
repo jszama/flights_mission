@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Roboto, Lora, Inter } from "next/font/google";
-import "./globals.css";
+import "../styles/globals.css";
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Header from "../components/Header/Header";
 
 const roboto = Roboto({
@@ -33,13 +34,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${roboto.variable} ${lora.variable} ${inter.variable} antialiased`}
-      >
-        <Header/>
-        {children}
-      </body>
-    </html>
+    <GoogleOAuthProvider clientId="YOUR_CLIENT_ID">
+      <html lang="en">
+        <body
+          className={`${roboto.variable} ${lora.variable} ${inter.variable} antialiased`}
+        >
+          <Header />
+          {children}
+        </body>
+      </html>
+    </GoogleOAuthProvider>
   );
 }
