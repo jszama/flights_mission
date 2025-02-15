@@ -17,9 +17,5 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  return (
-    <>
-      {isMobile ? <MobileHomePage/> : <DesktopHomePage/>}
-    </>
-  );
+  return isMobile ? <MobileHomePage/> : <DesktopHomePage/>
 }
