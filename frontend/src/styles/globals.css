@@ -845,7 +845,7 @@
 }
 
 .horizontal-break {
-  @apply flex flex-row items-center gap-x-4 w-[70%];
+  @apply flex flex-row items-center gap-x-4;
 }
 
 .horizontal-break hr {
