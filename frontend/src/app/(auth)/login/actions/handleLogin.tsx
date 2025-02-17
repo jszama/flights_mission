@@ -1,11 +1,10 @@
 "use server";
 
-import { loginFormSchema } from "@/types/loginFormSchema";
+import { loginFormSchema } from "@/lib/types";
 import { connectToDatabase } from "@/database/database";
 import bcrypt from "bcryptjs";
 import { User } from "@/database/models/User";
 import { redirect } from "next/navigation";
-import "dotenv/config";
 import { createSession } from "@/lib/session";
 
 export default async function handleLogin(prevState: any, formData: FormData) {
@@ -29,19 +28,13 @@ export default async function handleLogin(prevState: any, formData: FormData) {
 
     const authenticatedUser = await authenticateUser(email, password);
 
-    if (!authenticatedUser.success || !authenticatedUser.user) {
-      return {
-        errors: {
-          email: "Invalid email or password.",
-        },
-      };
-    }
+    await createSession(authenticatedUser._id as string);
+    console.log("User logged in:", authenticatedUser);
 
-    await createSession(authenticatedUser.user._id as string);
-    console.log("User logged in:", authenticatedUser.user);
     success = true;
   } catch (error) {
     console.error("Login error:", error);
+
     return {
       errors: {
         email: "An error occurred.",
@@ -57,8 +50,12 @@ async function authenticateUser(email: string, password: string) {
   const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password as string))) {
-    return { success: true, user };
+    return user;
   }
 
-  return { success: false, user: null };
+  return {
+    errors: {
+      email: "Invalid email or password.",
+    },
+  };;
 }

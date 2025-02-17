@@ -6,7 +6,7 @@ import { z } from "zod"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { registerFormSchema } from "@/types/registerFormSchema"
+import { registerFormSchema } from "@/lib/types"
 import {
   Form,
   FormControl,
