@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const loginFormSchema = z.object({
+  email: z.string(),
+  password: z.string()
+})
+
 export const registerFormSchema = z.object({
   firstName: z.string()
     .regex(/^[a-zA-Z]*$/, {
@@ -26,3 +31,13 @@ export const registerFormSchema = z.object({
       message: "Password must contain at least one special character.",
     }),
 })
+
+export enum buttonType {
+    signin_with = "signin_with",
+    signup_with = "signup_with"
+}
+
+export enum authPageHeaderType {
+    LOGIN = "LOGIN",
+    REGISTER = "REGISTER"
+}
